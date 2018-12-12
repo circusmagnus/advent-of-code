@@ -10,26 +10,24 @@ data class Cell(val x: Int, val y: Int, val serialNumber: Int) {
 
     val powerLevel by lazy { ((((rackId * y + serialNumber) * rackId) / 100).toString().last() + "").toInt() - 5 }
 
-    fun getGrid(allCells: Array<Array<Cell>>, size: Int): Grid? {
+    fun getGrid(allCells: Array<IntArray>, size: Int): Grid? {
 
-        val grid = ArrayList<Cell>(size * size)
+        if(x + size > allCells.size || y + size > allCells[0].size) return null
 
-        for(loopX in 1..size){
-            for (loopY in 1..size){
-                val cell = try {
-                    allCells[x + loopX][y + loopY]
-                } catch (e: ArrayIndexOutOfBoundsException){
-                    null
-                }
-                cell?.let { grid.add(it) }
+        val grid = ArrayList<Int>(size * size)
+
+        for(loopX in 0 until size){
+            for (loopY in 0 until size){
+                val cell = allCells[x + loopX][y + loopY]
+
+                cell.let { grid.add(it) }
             }
         }
 
         return grid
             .takeIf { it.size == size * size }
-            ?.sortedBy { it.x + it.y }
-            ?.let { cells ->
-                Grid(x = cells.first().x, y = cells.first().y, powerLevel = cells.map { it.powerLevel }.sum(), size = size)
+            ?.let { power ->
+                Grid(x = x, y = y, powerLevel = power.sum(), size = size)
             }
     }
 

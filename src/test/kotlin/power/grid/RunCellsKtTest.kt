@@ -22,7 +22,7 @@ class RunCellsKtTest {
 
     @Test
     fun `get Best Grid size`() {
-        getBestGridSize()?.let { grid -> print("x: ${grid.x}, y: ${grid.y}") }
+        getBestGridSize()?.let { grid -> print("x: ${grid.x}, y: ${grid.y}, grid size: ${grid.size}, grid power: ${grid.powerLevel}") }
 
     }
 
