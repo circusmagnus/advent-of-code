@@ -1,7 +1,6 @@
 package carts
 
-import java.util.ArrayDeque
-import java.util.Deque
+import java.util.LinkedList
 
 fun parseIntoMap(rawData: List<String>): Array<CharArray> = Array(rawData.size) { yIndex ->
     CharArray(rawData[yIndex].length) { xIndex ->
@@ -35,24 +34,35 @@ fun findCarts(initialMap: Array<CharArray>): List<Cart> {
 
 fun run(rawData: List<String>): Pair<Int, Int> {
     val map = parseIntoMap(rawData)
-    val carts = findCarts(map)
+    val carts = findCarts(map).toMutableList()
 
-    tailrec fun moveCartsAndReport(cartsQueue: Deque<Cart>): Cart? {
+    tailrec fun moveCartsAndReport(cartsQueue: LinkedList<Cart>): Cart? {
         if (cartsQueue.isEmpty()) return null
         val currentCart = cartsQueue.pop()
         currentCart.move()
-        return if (currentCart.isCrashed) currentCart
-        else moveCartsAndReport(cartsQueue)
+        if (currentCart.isCrashed) {
+            currentCart.disappear()
+            carts.remove(currentCart)
+            val (otherX, otherY) = currentCart.getNewPosition()
+            carts
+                .filter { it.positionY == otherY && it.positionX == otherX }
+                .forEach { cartsQueue.remove(it); it.disappear(); carts.remove(it) }
+        }
+
+        return moveCartsAndReport(cartsQueue)
     }
 
     tailrec fun runCycle(index: Int): Cart {
+        if (carts.size == 1) return carts.first()
+
         val sortedCarts = carts.sortedWith(Comparator { o1, o2 ->
             (o1.positionY - o2.positionY).takeUnless { it == 0 } ?: (o1.positionX - o2.positionX)
         })
 
 //        printMap(map)
+        println("carts left: ${carts.size}")
 
-        return moveCartsAndReport(ArrayDeque(sortedCarts)) ?: runCycle(index + 1)
+            return moveCartsAndReport(LinkedList(sortedCarts)) ?: runCycle(index + 1)
     }
 
     return runCycle(0).let { it.positionX to it.positionY }.also { printMap(map) }

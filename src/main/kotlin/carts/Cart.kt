@@ -24,11 +24,18 @@ class Cart(x: Int, y: Int, direction: Char, private val map: Array<CharArray>){
         val (newX, newY) = getNewPosition()
         releasePreviousTrack()
         isCrashed = map[newY][newX].let { Direction.values().map { it.mapMark }.contains(it) }
+        if (isCrashed) {
+
+            return
+        }
         positionY = newY; positionX = newX
-        if (isCrashed) return
         saveCurrentTrack()
         cartDirection = getNewDirection(newX, newY)
         updateMap()
+    }
+
+    fun disappear(){
+        releasePreviousTrack()
     }
 
     private fun updateMap(){
@@ -47,7 +54,8 @@ class Cart(x: Int, y: Int, direction: Char, private val map: Array<CharArray>){
         when(newTrack){
             '-', '|' -> cartDirection
             '+' -> getNextTurn().let { cartDirection.makeTurn(it) }
-            else -> cartDirection.makeTurn(newTrack)
+            '/', '\\' -> cartDirection.makeTurn(newTrack)
+            else -> throw IllegalArgumentException("should not happen")
         }
     }
 
@@ -66,7 +74,7 @@ class Cart(x: Int, y: Int, direction: Char, private val map: Array<CharArray>){
         }
     }
 
-    private fun getNewPosition() = when(cartDirection){
+    fun getNewPosition() = when(cartDirection){
         Direction.UP    -> positionX to positionY - 1
         Direction.DOWN  -> positionX to positionY + 1
         Direction.LEFT  -> positionX -1 to positionY

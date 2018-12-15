@@ -4,7 +4,7 @@ enum class Turn{LEFT, STRAIGHT, RIGHT}
 
 enum class Direction(val mapMark: Char) {
     UP('^'){
-        override fun makeTurn(turn: Char) = if (turn == '/') RIGHT else LEFT
+        override fun makeTurn(turn: Char) = if (turn == '/') RIGHT else if(turn == '\\') LEFT else throw IllegalArgumentException("should not happen")
         override fun makeTurn(turn: Turn): Direction = when(turn){
             Turn.STRAIGHT -> this
             Turn.LEFT     -> LEFT
@@ -12,7 +12,7 @@ enum class Direction(val mapMark: Char) {
         }
     },
     DOWN('v'){
-        override fun makeTurn(turn: Char) = if (turn == '/') LEFT else RIGHT
+        override fun makeTurn(turn: Char) = if (turn == '/') LEFT else if(turn == '\\') RIGHT else throw IllegalArgumentException("should not happen")
         override fun makeTurn(turn: Turn): Direction = when(turn){
             Turn.STRAIGHT -> this
             Turn.LEFT     -> RIGHT
@@ -20,7 +20,7 @@ enum class Direction(val mapMark: Char) {
         }
     },
     LEFT('<'){
-        override fun makeTurn(turn: Char) = if (turn == '/') DOWN else UP
+        override fun makeTurn(turn: Char) = if (turn == '/') DOWN else if(turn == '\\') UP else throw IllegalArgumentException("should not happen")
         override fun makeTurn(turn: Turn): Direction = when(turn){
             Turn.STRAIGHT -> this
             Turn.LEFT     -> DOWN
@@ -28,7 +28,7 @@ enum class Direction(val mapMark: Char) {
         }
     },
     RIGHT('>'){
-        override fun makeTurn(turn: Char) = if (turn == '/') UP else DOWN
+        override fun makeTurn(turn: Char) = if (turn == '/') UP else if(turn == '\\') DOWN else throw IllegalArgumentException("should not happen")
         override fun makeTurn(turn: Turn): Direction = when(turn){
             Turn.STRAIGHT -> this
             Turn.LEFT     -> UP
