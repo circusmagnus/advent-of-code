@@ -18,9 +18,6 @@ class PlayerTest {
     val testGame1 = getData("src/test/resources/goblins/test_game.txt")
     val realGame1 = getData("src/test/resources/goblins/real_game1.txt")
 
-
-
-
     @Test
     fun move() {
     }

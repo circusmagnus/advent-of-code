@@ -3,7 +3,7 @@ package goblins
 import java.util.ArrayDeque
 import java.util.Deque
 
-enum class Interaction { FIGHT, OBSTACLE }
+enum class Interaction { FIGHT, OBSTACLE, NONE }
 
 interface MapObject {
     fun getInteraction(otherObject: MapObject): Interaction
@@ -36,6 +36,11 @@ object NodeMark : MapObject {
     override fun getSymbol(): Char = 'N'
 }
 
+object DeadBody: MapObject {
+    override fun getInteraction(otherObject: MapObject): Interaction = Interaction.NONE
+    override fun getSymbol(): Char = 'D'
+}
+
 interface Warrior {
     val hp: Int
     fun sufferWound(howBad: Int)
@@ -59,17 +64,32 @@ data class Position(val x: Int, val y: Int)
 
 class Player(
     position: Position,
-    private val mapObject: MapObject,
+    mapObject: MapObject,
     private val warrior: Warrior
-) : MapObject by mapObject, Warrior by warrior {
+) : MapObject, Warrior by warrior {
 
     var position = position
+    private set
+
+    var mapObject = mapObject
     private set
 
     var hasWonTheGame = false
     private set
 
+    override fun getInteraction(otherObject: MapObject): Interaction = mapObject.getInteraction(otherObject)
+
+    override fun getSymbol(): Char = mapObject.getSymbol()
+
+    override fun sufferWound(howBad: Int) {
+        warrior.sufferWound(howBad)
+        if(warrior.hp <= 0) mapObject = DeadBody
+    }
+
     fun makeMove(map: Array<Array<MapObject?>>) {
+        if (warrior.hp <= 0) {
+            return
+        }
         findNextStep(map)
             ?.let { (newX, newY) ->
                 position.let { (x, y) -> map[y][x] = null }
@@ -77,10 +97,7 @@ class Player(
                 map[newY][newX] = this
             } ?: kotlin.run { hasWonTheGame = true }
 
-        findEnemy(map)?.let { enemy ->
-            strike(enemy)
-            if (enemy.hp <= 0) enemy.position.let { (x, y) -> map[y][x] = null }
-        }
+        findEnemy(map)?.let { enemy -> strike(enemy) }
     }
 
     fun findEnemy(map: Array<Array<MapObject?>>) = position
@@ -155,7 +172,7 @@ class Node(val position: Position, val parent: Node?, val origin: Player) {
         for ((x, y) in locationsToCheck) {
             if (Position(x, y) == parent?.position) continue
             val interaction = map[y][x]?.getInteraction(origin)
-            if (interaction == null) {
+            if (interaction == null || interaction == Interaction.NONE) {
                 children.add(Node(Position(x, y), this, origin))
                 map[y][x] = NodeMark
             } else if (interaction == Interaction.FIGHT) return null
