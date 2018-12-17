@@ -71,8 +71,7 @@ class Player(
     var position = position
     private set
 
-    var mapObject = mapObject
-    private set
+    private var mapObject = mapObject
 
     var hasWonTheGame = false
     private set
@@ -188,12 +187,12 @@ private fun getAdjacentLocations(x: Int, y: Int): List<Position> = listOf(
     Position(x, y + 1)
 )
 
-fun getMap(rawData: List<String>): Array<Array<MapObject?>> = Array(rawData.size) { yIndex ->
+fun getMap(rawData: List<String>, elfAttackPower: Int): Array<Array<MapObject?>> = Array(rawData.size) { yIndex ->
     Array(rawData[yIndex].length) { xIndex ->
         rawData[yIndex][xIndex].let { char ->
             when (char) {
                 '#'  -> Wall
-                'E'  -> Player(Position(xIndex, yIndex), Elf, Warrior1(3, 200))
+                'E'  -> Player(Position(xIndex, yIndex), Elf, Warrior1(elfAttackPower, 200))
                 'G'  -> Player(Position(xIndex, yIndex), Goblin, Warrior1(3, 200))
                 else -> null
             }
@@ -228,8 +227,7 @@ fun findPlayers(map: Array<Array<MapObject?>>): List<Player> {
     return players
 }
 
-fun runGame(rawData: List<String>): Int {
-    val map = getMap(rawData)
+fun countGameTurns(map: Array<Array<MapObject?>>): Int {
 
     tailrec fun runRound(players: Deque<Player>): Boolean{
         if(players.isEmpty()) return false
@@ -252,5 +250,22 @@ fun runGame(rawData: List<String>): Int {
     }
 
     return runGame(0) * (findPlayers(map).sumBy { it.hp })
+}
+
+fun noElvesDie(rawData: List<String>) : Int{
+
+    fun findElvesCount(map: Array<Array<MapObject?>>) =
+        findPlayers(map).filter { it.getSymbol() == 'E' }.count()
+
+    tailrec fun cycleUntilResult(elfAttackPower: Int): Int{
+        val map = getMap(rawData, elfAttackPower)
+        val initailElvesCount = findElvesCount(map)
+        val gameResult = countGameTurns(map)
+        val remainingElvesCount = findElvesCount(map)
+        return if(remainingElvesCount == initailElvesCount) gameResult
+        else cycleUntilResult(elfAttackPower + 1)
+    }
+
+    return cycleUntilResult(3)
 }
 
